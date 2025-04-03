@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Lesson_1  </title>
+    <style>* { padding: 0; margin: 0; } canvas { background: white; display: block; margin: 0 auto; }</style>
+</head>
+<body>
+
+<canvas id="myCanvas" width="480" height="320" style="border:1px solid black;"></canvas>
+
+<script>
+
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+	
+	let direction = [-1,1];
+	let txt_colours = ["red", "green", "blue", "yellow","purple"];
+	let txt = " DVD "
+	
+	let dx = direction.at(Math.floor(Math.random() * direction.length));
+	let dy = direction.at(Math.floor(Math.random() * direction.length));
+	
+	
+	
+	txt_colour=txt_colours.at(Math.floor(Math.random() * txt_colours.length))
+	
+	txt_x =(canvas.width/2)-20
+	txt_y = canvas.height/2
+	
+	nameBox_x= 40
+	nameBox_= 40
+	
+	function dvdLogo(){
+	
+		ctx.font = "30px Arial";
+		ctx.fillStyle = txt_colour;
+		ctx.fillText(txt, txt_x,txt_y);
+		
+		ctx.beginPath();
+		ctx.rect(txt_x, txt_y-35, ctx.measureText(txt).width,45);
+		ctx.strokeStyle = "black";
+		ctx.stroke();
+		ctx.closePath();
+	}
+	
+	function nameBox(name,x, y,colour){
+	
+		ctx.font = "30px Arial";
+		ctx.fillStyle = colour;
+		ctx.fillText(name, x,y);
+		
+		ctx.beginPath();
+		ctx.rect(x, y-35, ctx.measureText(name).width,45);
+		ctx.strokeStyle = "black";
+		ctx.stroke();
+		ctx.closePath();
+	}
+
+
+	
+	
+	function draw() {
+		
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		
+        dvdLogo();
+		
+		//(NEW)
+		nameBox("name",40, 40,"black");
+		
+        txt_x += dx;
+        txt_y += dy;
+
+		
+		//Boundary detection
+		if(txt_x + dx > canvas.width -ctx.measureText(txt).width || txt_x + dx  <0 ) {
+            dx = -dx;
+			txt_colour=txt_colours.at(Math.floor(Math.random() * txt_colours.length))
+        }
+		
+		
+		if(txt_y + dy  > canvas.height || txt_y + dy  < 35) {
+            dy = -dy;
+			txt_colour=txt_colours.at(Math.floor(Math.random() * txt_colours.length))
+        }
+		
+		
+		
+	    // collide text
+		if (txt_x ==  80 && txt_y == 80) {
+		
+			nameBox("name",80, 80,"black");
+
+		}
+
+		
+	}
+
+
+    setInterval(draw, 10);
+
+</script>
+
+</body>
+</html>

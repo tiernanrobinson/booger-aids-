@@ -1,0 +1,272 @@
+
+
+<!-- Basic game setup with HTML and JavaScript -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+	
+        /* Styles for the game canvas */
+        canvas {
+            border:1px solid Black;
+            background-color: white;
+        }
+        /* Button styles */
+        .button {
+            color: white;
+            background-color: Black;
+            border-radius: 25px;
+            text-align: center;
+            padding: 10px 50px;
+            transition: 1.3s;
+        }
+		
+        .button:hover {
+            color: Black;
+            background-color: white;
+        }
+    </style>
+</head>
+
+<script>
+
+		///////////////////////////////////////////////////////////////////
+		// Game variables
+		//The object that will hold each individual element on the screen
+		///////////////////////////////////////////////////////////////////
+    	var myGamePiece; 
+	
+    	var myPillars = [];
+    	var myLevel;
+		///////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////
+    
+	
+		///////////////////////////////////////////////////////////////////
+		// Function to start the game
+		///////////////////////////////////////////////////////////////////
+    	function startGame() {
+	
+		var squareSize = 30
+		
+        myGamePiece = new component(squareSize, squareSize, 10, 0); // Player character
+		
+        myGamePiece.gravity = 0.05; // Apply gravity
+        
+		
+		
+        myLevel = new component("30px", "Consolas", 10, 20, "text"); // Score display
+        myGameArea.start(); // Initialize game area
+		
+    }//startGame Function END
+
+
+    // Game area object
+	///////////////////////////////////////////////////////////////////
+    var myGameArea = {
+        canvas: document.createElement("canvas"),
+        
+		
+		//start:
+		///////////////////////////////////////////////////////////////////
+        start: function() {
+            this.canvas.width = 600;
+            this.canvas.height = 370;
+			
+            this.context = this.canvas.getContext("2d");
+			
+            document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+            this.frameNo = 0;
+			
+            this.interval = setInterval(updateGameArea, 20); // Game loop
+			
+        },//start: nestedFunction END
+        
+		
+		//clear:
+		///////////////////////////////////////////////////////////////////
+        clear: function() {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height); // Clear the screen
+        }//clear: nested Function END
+		
+
+    }//myGameArea Function END
+	
+	
+    // Component constructor for game objects
+	///////////////////////////////////////////////////////////////////
+    function component(width, height, x, y, type) {
+	
+		//Component variables
+        this.type = type;
+        this.width = width;
+        this.height = height;
+		this.x = x;
+        this.y = y;
+		
+        this.speedX = 0;
+        this.speedY = 0;    
+
+        this.gravity = 0;
+        this.gravitySpeed = 0;
+
+
+
+        // Draw component on canvas
+		////update: nested Function END
+		///////////////////////////////////////////////////////////
+        this.update = function() {
+		
+            ctx = myGameArea.context;
+            
+            if (this.type == "text") {
+                ctx.font = this.width + " " + this.height;
+                ctx.fillStyle = "black";
+                ctx.strokeText(this.text, this.x, this.y);
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 5;
+                ctx.fillText(this.text, this.x, this.y);
+            } else {
+                ctx.fillStyle = "black";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+		
+        }//update: nested Function END
+
+        // Update position based on speed andgravity
+        this.newPos = function() {
+            this.gravitySpeed += this.gravity;
+            this.x += this.speedX;
+            this.y += this.speedY + this.gravitySpeed;
+            this.warp(); // Handle screen wrapping
+        }//update: nested Function END
+
+        // Wrap player around the screen if they go off
+        this.warp = function() {
+		
+            if (this.y > myGameArea.canvas.height - this.height) {
+                this.y = 0;
+            } else if (this.y < 0) {
+                this.y = myGameArea.canvas.height - this.height;
+            }
+        }//update: nested Function END
+
+        // Check for collision with Pillars
+        this.crashWith = function(otherobj) {
+		
+            var myleft = this.x;
+            var myright = this.x + this.width;
+            var mytop = this.y;
+            var mybottom = this.y + this.height;
+			
+			
+            var otherleft = otherobj.x;
+            var otherright = otherobj.x + otherobj.width;
+            var othertop = otherobj.y;
+            var otherbottom = otherobj.y + otherobj.height;
+			
+			
+            var crash = !((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright));
+            return crash;
+			
+       }//update: nested Function END
+		
+		
+    }//component Function END
+	///////////////////////////////////////////////////////////////////
+	
+	
+
+    // Function to update game area (main game loop)
+    function updateGameArea() {
+	
+        var level = 1;
+
+		var PillarWidth =30;
+		
+		var height = Math.floor(Math.random() * (180) + 20);
+        var gap = Math.floor(Math.random() * (150) + 50);
+		
+		//Increased level for every 1000 frames that pass
+        level += Math.floor(myGameArea.frameNo / 1000);
+		
+
+        // Check for collisions with Pillars
+        for (i = 0; i < myPillars.length; i++) {
+            if (myGamePiece.crashWith(myPillars[i])) {
+                return; // Stop game if collision occurs
+            }
+        }
+		
+		
+
+		// Clear the screen
+        myGameArea.clear(); 
+        myGameArea.frameNo += 1;
+		x = myGameArea.canvas.width; 
+		
+		
+        // Generate new Pillars over time
+        if (myGameArea.frameNo == 1 || everyinterval(150)) {
+		
+			// Top Pillar
+            myPillars.push(new component(PillarWidth, height, myGameArea.canvas.width, 0));
+			
+			// Bottom Pillar			
+            myPillars.push(new component(PillarWidth, myGameArea.canvas.width - height - gap , myGameArea.canvas.width, height + gap)); 
+        }
+
+        // Move Pillars to the left
+        for (i = 0; i < myPillars.length; i++) {
+            myPillars[i].x += -1;
+            myPillars[i].update();
+        }
+
+
+		//Update score and player position
+        myLevel.text = "Level: " + level;
+        myLevel.update();
+        myGamePiece.newPos();
+        myGamePiece.update();
+		
+    }//updateGameArea  Function END
+
+    // Adjust gravity when buttons are pressed
+	//////////////////////////////////////////
+    function accelerate(n) {
+        myGamePiece.gravity = n;
+    }//accelerate  Function END
+    
+	
+	// Adjust gravity when buttons are pressed
+	//////////////////////////////////////////
+    function deaccelerate() {
+        myGamePiece.gravitySpeed = 0;
+    }//accelerate  Function END
+	
+	
+		// Adjust gravity when buttons are pressed
+	//////////////////////////////////////////
+	function everyinterval(n) {
+    if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
+    return false;
+	}
+	
+</script>
+
+
+
+
+
+<body onload="startGame()">
+    <hr>
+    <!-- Buttons for controlling the player -->
+    <button class="button" onmousedown="deaccelerate()"> stop </button>
+    <button class="button" onClick="window.location.reload();"> restart </button>
+    <button class="button" onmousedown="accelerate(-0.2)" onmouseup="accelerate(0.05)"> up </button>
+
+</body>
+
+</html>
